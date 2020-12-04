@@ -1,0 +1,185 @@
+# -*- coding: utf-8 -*-
+"""
+Week 14 Assignment A & B combined
+
+@author: joewa
+"""
+import numpy as np
+import matplotlib.animation as ani
+import matplotlib.pyplot as plt
+
+def distance(s1,s2):
+    return np.sqrt(sum((s1.pos-s2.pos)**2))
+
+def closer_than(s1, s2, dist):
+    if s1.pos[0] - s2.pos[0] > dist:
+        return False
+    if s1.pos[1] - s2.pos[1] > dist:
+        return False
+    else:
+        return distance(s1, s2) < dist
+    
+    
+class person():
+    
+    def __init__(self,box,sick,velocity):
+        self.box = box
+        self.sick = sick
+        self.pos = np.random.random(2)*box
+        self.vel = np.random.uniform(-1,1,2)*velocity
+        self.immune = False
+        self.dead = False
+        self.age = np.random.random(int(ntotal))<= ntotal
+        self.penalty = False
+        self.count = 0
+        
+    def move(self,dt):
+        self.pos += dt*self.vel
+        if (self.sick):
+            self.sick+=1
+        for direction in range(len(self.box)):
+            if ((self.pos[direction] > self.box[direction]) or (self.pos[direction] < 0.0)):
+                self.vel[direction] *= -1
+    
+    def age(self):
+        old= ntotal*0.16      #over 65 16%
+        young= ntotal*0.061    #under 5 6.1%
+        #sucks= old-young   #everyone else
+        if self.age >= young or self.age <= old:
+            return self.penalty # NO penalty 
+        else:
+            self.penalty = True 
+                
+    def get_sick(self,sick,safe_radius):
+        for person in sick:
+            if ( closer_than(self,person,safe_radius) ):
+                self.sick +=1
+                person.count +=1
+                    
+    def get_immune(self,sick_time,survival_rate):
+        if (self.sick >= sick_time):
+            if (self.penalty==True):
+                if (np.random.random() <= survival_rate):
+                    self.dead = True
+            elif (np.random.random() > survival_rate):
+                self.dead = True
+            else:
+                self.immune = True
+    
+ #   def count(self,nsick,nhealthy,ntotal,immune):
+  #      for self.count:
+   #         count=len(
+            
+            
+box=np.array([1,1])
+velocity=1.
+dt=0.02
+ntotal=1000
+nhealthy=ntotal-1
+nsick=ntotal-nhealthy
+safe_radius=0.007
+sick_time=30
+survival_rate=0.97
+
+
+
+runs=1000
+
+for i in range(runs):
+    
+    healthy=[ person(box,0,velocity) for i in range(nhealthy) ] 
+    sick=[ person(box,1,velocity) for i in range(nsick)]
+    immune=[]
+    dead=[]
+    
+    while sick : 
+        
+        for p in healthy:
+            p.get_sick(sick,safe_radius)
+            p.move(dt)
+            
+        for p in sick:
+            p.get_immune(sick_time,survival_rate)
+            p.move(dt)
+        
+        for p in immune:
+            p.move(dt)
+            
+        index = 0
+        while index < len(healthy):
+            if (healthy[index].sick) : 
+                sick.append(healthy.pop(index))
+            else:
+                index+=1
+                        
+        index = 0
+        
+        while index < len(sick):
+            if (sick[index].dead) : 
+                count[icount]+=sick[index].count
+                icount+=1
+                dead.append(sick.pop(index))
+            elif (sick[index].immune) : 
+                count[icount]+=sick[index].count
+                icount+=1
+                immune.append(sick.pop(index))
+            else:
+                index+=1
+    
+
+#animation for ONE run 
+        
+fig, axes = plt.subplots(1)
+axes.set_xlim(0, box[0])
+axes.set_ylim(0, box[1])
+#x=[Bob.pos[0]]
+#y=[Bob.pos[1]]
+#b,=axes.plot(x,y)
+a,=axes.plot([person.pos[0] for person in healthy],[person.pos[1] for person in healthy],'go')
+b,=axes.plot([person.pos[0] for person in sick],[person.pos[1] for person in sick],'ro')
+c,=axes.plot([person.pos[0] for person in immune],[person.pos[1] for person in immune],'bo')
+d,=axes.plot([person.pos[0] for person in dead],[person.pos[1] for person in dead],'ko')
+
+
+def animate(i):
+    
+    for person in healthy:
+        person.get_sick(sick,safe_radius)
+        person.move(dt)
+        
+    for person in sick:
+        person.get_immune(sick_time,survival_rate)
+        person.move(dt)
+        
+        
+    for person in immune:
+        person.move(dt)
+        
+    index = 0
+    while index < len(healthy):
+        if (healthy[index].sick) : 
+            sick.append(healthy.pop(index))
+        else:
+            index+=1
+    
+    index = 0
+    while index < len(sick):
+        if (sick[index].dead) : 
+            dead.append(sick.pop(index))
+        elif (sick[index].immune) : 
+            immune.append(sick.pop(index))
+        else:
+            index+=1
+
+           
+ #   x.append(Bob.pos[0])
+ #   y.append(Bob.pos[1])
+ #   b.set_data(x,y)
+    a.set_data([person.pos[0] for person in healthy],[person.pos[1] for person in healthy])
+    b.set_data([person.pos[0] for person in sick],[person.pos[1] for person in sick])
+    c.set_data([person.pos[0] for person in immune],[person.pos[1] for person in immune])
+    d.set_data([person.pos[0] for person in dead],[person.pos[1] for person in dead])
+   
+    return a,b,c,d
+
+anim = ani.FuncAnimation(fig, animate, frames=1000, interval=1000)
